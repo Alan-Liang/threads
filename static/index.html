@@ -65,6 +65,26 @@
       opacity: 0.6;
       text-align: center;
     }
+    h1 {
+      display: flex;
+      align-items: center;
+    }
+    .zhihu-link {
+      margin-left: 1em;
+      line-height: 1.5rem;
+      font-weight: 400;
+      position: relative;
+      top: 4px;
+    }
+    @media (max-width: 618px) {
+      h1 {
+        display: block;
+      }
+      .zhihu-link {
+        display: block;
+        margin-left: -0.25rem;
+      }
+    }
   </style>
 </head>
 <body class="noscript">
@@ -75,7 +95,12 @@
     if (window.es6Supported) document.body.classList.remove('noscript')
   </script>
   <main>
-    <h1>黄庄回响集</h1>
+    <h1>黄庄回响集<a class="button zhihu-link" href="/zhihu/" style="text-decoration:none">如何评价 →</a></h1>
+    <script>
+      if (location.pathname.includes('/zhihu/')) document.querySelector('h1').innerHTML = `
+      <h1>黄庄回响集·如何评价<a class="button zhihu-link" href="/" style="text-decoration:none">回到黄庄回响集 →</a></h1>
+      `
+    </script>
     <p>💫五湖四海，红白情牵，身在世间各处的我们，对这共同的、永远的RDFZ家园，充满了怀念也充满了回忆。🟥    🟥</p>
     <p>在这个文档里，可写下你在人大附中的事，拾取那些闪闪发光的记忆碎片✨也可与小伙伴们共同畅谈，交换彼此的快乐。👫👭 </p>
     <p>欢迎大家分享给身边的RDFZers来一起填写！！🥳（\欢呼/）🥳</p>
@@ -86,16 +111,15 @@
     <div id="app">
     </div>
   </main>
-  <script async defer data-website-id="3ca65230-0afc-4be2-8511-6c65851bc224" src="https://umami.keeer.net/umami.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
-  <script src="/socket.io/socket.io.js"></script>
+  <script src="socket.io/socket.io.js"></script>
   <script>
     let keyword = localStorage.THREADS_KEYWORD, connected = false
     const ask = () => {
       if (!keyword) keyword = prompt('SSID 为 guest 的 WiFi 的密码是？（8 个字母，可能有两种答案，都算对）', '')
       return keyword
     }
-    const socket = io('/', { auth: { token: ask() } })
+    const socket = io('/', { auth: { token: ask() }, path: location.pathname + '/socket.io' })
     socket.on('disconnect', () => {
       alert('连接已断开, 请刷新页面')
     })
