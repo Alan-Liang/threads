@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>黄庄回响集</title>
+  <link rel="stylesheet" href="styles/base.css">
+  <style>
+    h3 { position: relative; }
+    .order {
+      user-select: none;
+      opacity: 0.4;
+    }
+    @media (min-width: 1200px) {
+      h3 {
+        left: 1.05em;
+      }
+      .order {
+        position: absolute;
+        right: calc(100% + 0.5em);
+      }
+    }
+    ul {
+      margin-left: 1.25em;
+      list-style: none;
+      position: relative;
+    }
+    ul > li::before {
+      content: '- ';
+      position: absolute;
+      right: calc(100% + 0.5em);
+      opacity: 0.4;
+    }
+    .showall::before {
+      opacity: 0;
+    }
+    .noscript-only {
+      display: none;
+    }
+    .noscript .noscript-only {
+      display: block;
+    }
+    .noscript #app {
+      display: none;
+    }
+    li > .reply {
+      opacity: 0;
+      transition: x 0.3s ease;
+      transition-property: opacity, background-color;
+    }
+    li:hover > .reply { opacity: 0.6; }
+    form { display: inline; }
+    main, .fullwidth { width: 100%; }
+    ul.fullwidth {
+      width: calc(100% - 1em);
+    }
+    .hide { opacity: 0; }
+    hr {
+      margin: 64px 0 32px;
+      border: none;
+      border-bottom: 1px solid #ccc;
+    }
+    .meta {
+      opacity: 0.6;
+      text-align: center;
+    }
+  </style>
+</head>
+<body class="noscript">
+  <script>
+    window.es6Supported = `` || true
+  </script>
+  <script>
+    if (window.es6Supported) document.body.classList.remove('noscript')
+  </script>
+  <main>
+    <h1>黄庄回响集</h1>
+    <p>💫五湖四海，红白情牵，身在世间各处的我们，对这共同的、永远的RDFZ家园，充满了怀念也充满了回忆。🟥    🟥</p>
+    <p>在这个文档里，可写下你在人大附中的事，拾取那些闪闪发光的记忆碎片✨也可与小伙伴们共同畅谈，交换彼此的快乐。👫👭 </p>
+    <p>欢迎大家分享给身边的RDFZers来一起填写！！🥳（\欢呼/）🥳</p>
+    <div class="noscript-only">
+      <br><br>
+      您的浏览器可能不支持现代 JavaScript，而我们需要现代 JavaScript 才能为您展示内容。
+    </div>
+    <div id="app">
+    </div>
+  </main>
+  <script async defer data-website-id="3ca65230-0afc-4be2-8511-6c65851bc224" src="https://umami.keeer.net/umami.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    let keyword = localStorage.THREADS_KEYWORD, connected = false
+    const ask = () => {
+      if (!keyword) keyword = prompt('SSID 为 guest 的 WiFi 的密码是？（8 个字母，可能有两种答案，都算对）', '')
+      return keyword
+    }
+    const socket = io('/', { auth: { token: ask() } })
+    socket.on('disconnect', () => {
+      alert('连接已断开, 请刷新页面')
+    })
+    socket.on('connect_error', () => {
+      if (connected) return
+      localStorage.THREADS_KEYWORD = ''
+      alert('连接已断开, 请刷新页面')
+    })
+    const shared = {
+      state: [],
+      nextThreadId: -1,
+      inReply: false,
+    }
+    socket.on('init', (state, nextThreadId) => {
+      connected = true
+      shared.state = state
+      shared.nextThreadId = nextThreadId
+      localStorage.THREADS_KEYWORD = keyword
+    })
+    socket.on('thread', (thread, nextThreadId) => {
+      Vue.set(shared.state, thread.id, thread)
+      shared.nextThreadId = nextThreadId
+    })
+    socket.on('post', post => {
+      shared.state[post.threadId].posts.push(post)
+    })
+    Vue.component('add-post', {
+      props: { inReplyTo: Number, threadId: Number, cancellable: Boolean },
+      data: () => ({ content: '' }),
+      template: `
+      <li><form @submit.prevent="go"><input v-model="content" ref="input"> <button type="submit">添加</button> &nbsp; <button v-if="cancellable" @click.prevent="$emit('cancel')">取消</button></form></li>
+      `,
+      methods: {
+        go () {
+          if (this.content) {
+            socket.emit('post', this.content, this.threadId, this.inReplyTo)
+            this.content = ''
+          }
+        },
+        focus () {
+          this.$refs.input.focus()
+        },
+      },
+    })
+    Vue.component('post', {
+      props: { post: {}, thread: {} },
+      data: () => ({ replyState: false }),
+      template: `
+      <li class="fullwidth">
+        <span v-html="post.content.replace(/</g, '&amp;lt;').replace(/>/g, '&amp;gt;').replace(/&quot;/g, '&amp;quot;').replace(/\\n/g, '<br>')" />
+        <button :class="{ hide: hideReply }" class="reply" @click="reply(true)">回复</button>
+        <ul class="fullwidth">
+          <post v-for="subpost in thread.posts.filter(x => x.inReplyTo === post.id)" :key="subpost.id" :post="subpost" :thread="thread" />
+          <add-post v-if="replyState" ref="addPost" :in-reply-to="post.id" :thread-id="thread.id" cancellable @cancel="reply(false)" />
+        </ul>
+      </li>
+      `,
+      methods: {
+        reply (state) {
+          this.replyState = shared.inReply = state
+          if (state) this.$nextTick(() => this.$refs.addPost.focus())
+        },
+      },
+      computed: {
+        hideReply () { return shared.inReply },
+      },
+    })
+    Vue.component('add-thread', {
+      props: { id: Number },
+      data: () => ({ content: '' }),
+      template: `
+      <h3><form @submit.prevent="go"><span class="order">{{ id }}.</span> <input v-model="content"> <button type="submit">添加</button></form></h3>
+      `,
+      methods: {
+        go () {
+          if (this.content) {
+            socket.emit('thread', this.content)
+            this.content = ''
+          }
+        },
+      },
+    })
+    Vue.component('thread', {
+      props: { thread: {} },
+      data: () => ({ folded: true }),
+      template: `
+      <div class="fullwidth">
+        <h3><span class="order">{{ thread.id }}.</span> <span v-html="thread.content.replace(/</g, '&amp;lt;').replace(/>/g, '&amp;gt;').replace(/&quot;/g, '&amp;quot;').replace(/\\n/g, '<br>')" /></h3>
+        <ul class="fullwidth">
+          <post v-for="post in postsToShow" :key="post.id" :post="post" :thread="thread" />
+          <add-post v-if="!shouldFold || !folded" :thread-id="thread.id" :in-reply-to="-1" />
+          <li v-if="shouldFold && folded" class="showall"><button @click="folded = false">显示全部 {{ thread.posts.length }} 条回复…</button></li>
+          <li v-if="shouldFold && !folded" class="showall"><button @click="folded = true">收起回复</button></li>
+        </ul>
+      </div>
+      `,
+      computed: {
+        shouldFold () { return this.posts.length > 6 },
+        posts () { return this.thread.posts.filter(x => x.inReplyTo < 0) },
+        postsToShow () {
+          if (this.shouldFold && this.folded) return this.posts.slice(0, 4)
+          return this.posts
+        },
+      },
+    })
+    new Vue({
+      el: '#app',
+      data: shared,
+      template: `
+      <div class="fullwidth">
+        <template v-if="nextThreadId > 0">
+          <thread v-for="thread in state.filter(Boolean)" :key="thread.id" :thread="thread"></thread>
+          <add-thread :id="nextThreadId"></add-thread>
+          <hr>
+          <p class="meta"><a href="https://github.com/Alan-Liang/threads/" class="button" style="opacity:1; text-decoration:none">Threads</a> · World is Powered By Solitude</p>
+        </template>
+        <template v-else>
+          加载中……
+        </template>
+      </div>
+      `,
+    })
+  </script>
+</body>
+</html>

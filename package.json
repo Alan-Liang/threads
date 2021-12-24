@@ -1,0 +1,18 @@
+{
+  "name": "threads",
+  "version": "0.0.0-dev",
+  "main": "src/index.mjs",
+  "repository": "https://github.com/Alan-Liang/threads",
+  "author": "Alan Liang",
+  "license": "GPL-3.0",
+  "private": true,
+  "dependencies": {
+    "@koa/router": "^10.1.1",
+    "koa": "^2.13.4",
+    "koa-body": "^4.2.0",
+    "koa-static": "^5.0.0",
+    "nedb": "^1.8.0",
+    "nedb-promise": "^2.0.1",
+    "socket.io": "^4.4.0"
+  }
+}
