@@ -10,7 +10,7 @@ const token = (process.env.TOKEN || 'test').split(',')
 const deleteToken = process.env.DELETE_TOKEN || 'delete'
 
 const db = new Nedb({
-  filename: 'data',
+  filename: process.env.DATABASE || 'data',
   autoload: true,
 })
 
