@@ -8,6 +8,11 @@ const db = new Nedb({
   autoload: true,
 })
 
+const db2 = new Nedb({
+  filename: process.env.DATABASE || 'data.main',
+  autoload: true,
+})
+
 const metadata = () => ({
   time: Date.now(),
   ip: '127.0.0.1',
@@ -42,4 +47,27 @@ for (const line of lines) {
   }
   console.log(line)
   throw 1
+}
+
+const threadmap = {}
+const patch = (await db2.find({})).filter(x => x.ip !== '127.0.0.1')
+for (const thread of patch.filter(x => x.is === 'thread')) {
+  const id = nextThreadId++
+  threadmap[thread.id] = id
+  thread.id = id
+  await db.insert(thread)
+}
+
+for (const post of patch.filter(x => x.is === 'post').sort((a, b) => a.id - b.id)) {
+  const id = nextPostId++
+  post.id = id
+  if (threadmap[post.threadId]) post.threadId = threadmap[post.threadId]
+  if (post.inReplyTo > -1) {
+    const orig = await db2.findOne({ is: 'post', id: post.inReplyTo })
+    if (!orig) console.log(post)
+    const curr = await db.findOne({ is: 'post', content: orig.content })
+    if (!curr) console.log(post, orig.content)
+    post.inReplyTo = curr.id
+  }
+  await db.insert(post)
 }
