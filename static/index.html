@@ -115,38 +115,40 @@
   <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
   <script src="socket.io/socket.io.js"></script>
   <script>
-    let keyword = localStorage.THREADS_KEYWORD, connected = false
-    const ask = () => {
-      if (!keyword) keyword = prompt('SSID 为 guest 的 WiFi 的密码是？（8 个字母，可能有两种答案，都算对）', '')
-      return keyword
-    }
-    const socket = io('/', { auth: { token: ask() }, path: location.pathname + '/socket.io' })
-    socket.on('disconnect', () => {
-      alert('连接已断开, 请刷新页面')
-    })
-    socket.on('connect_error', () => {
-      if (connected) return
-      localStorage.THREADS_KEYWORD = ''
-      alert('连接已断开, 请刷新页面')
-    })
+    let keyword = localStorage.THREADS_KEYWORD || '', connected = false
     const shared = {
       state: [],
       nextThreadId: -1,
       inReply: false,
+      needAuth: !keyword,
+      keyword,
     }
-    socket.on('init', (state, nextThreadId) => {
-      connected = true
-      shared.state = state
-      shared.nextThreadId = nextThreadId
-      localStorage.THREADS_KEYWORD = keyword
-    })
-    socket.on('thread', (thread, nextThreadId) => {
-      Vue.set(shared.state, thread.id, thread)
-      shared.nextThreadId = nextThreadId
-    })
-    socket.on('post', post => {
-      shared.state[post.threadId].posts.push(post)
-    })
+    let socket
+    const makeSocket = keyword => {
+      socket = io('/', { auth: { token: keyword }, path: location.pathname + 'socket.io' })
+      socket.on('disconnect', () => {
+        alert('连接已断开, 请刷新页面')
+      })
+      socket.on('connect_error', () => {
+        if (connected) return
+        localStorage.THREADS_KEYWORD = ''
+        alert('连接已断开, 请刷新页面')
+      })
+      socket.on('init', (state, nextThreadId) => {
+        connected = true
+        shared.state = state
+        shared.nextThreadId = nextThreadId
+        localStorage.THREADS_KEYWORD = keyword
+      })
+      socket.on('thread', (thread, nextThreadId) => {
+        Vue.set(shared.state, thread.id, thread)
+        shared.nextThreadId = nextThreadId
+      })
+      socket.on('post', post => {
+        shared.state[post.threadId].posts.push(post)
+      })
+    }
+    if (keyword) makeSocket(keyword)
     Vue.component('add-post', {
       props: { inReplyTo: Number, threadId: Number, cancellable: Boolean },
       data: () => ({ content: '' }),
@@ -231,7 +233,12 @@
       data: shared,
       template: `
       <div class="fullwidth">
-        <template v-if="nextThreadId > 0">
+        <template v-if="needAuth">
+          <h2>身份验证</h2>
+          <p>SSID 为 guest 的 WiFi 的密码是？（8 个字母，可能有两种答案，都算对）</p>
+          <p><form @submit.prevent="authenticate"><input v-model="keyword"> <button type="submit">确认</button></form></p>
+        </template>
+        <template v-else-if="nextThreadId > 0">
           <thread v-for="thread in state.filter(Boolean)" :key="thread.id" :thread="thread"></thread>
           <add-thread :id="nextThreadId"></add-thread>
           <hr>
@@ -242,6 +249,14 @@
         </template>
       </div>
       `,
+      methods: {
+        authenticate () {
+          if (this.keyword) {
+            this.needAuth = false
+            makeSocket(this.keyword)
+          }
+        },
+      },
     })
   </script>
 </body>
