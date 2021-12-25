@@ -49,7 +49,10 @@ const metadata = socket => ({
 
 io.use((socket, next) => {
   const tok = socket.handshake.auth?.token
-  if (!token.includes(tok)) return next(new Error('Not authorized'))
+  if (!token.includes(tok)) {
+    if (tok) console.log(`${Date.now()} ${socket.handshake.headers['x-forwarded-for'] || socket.handshake.address} ${tok}`)
+    return next(new Error('Not authorized'))
+  }
   return next()
 }).on('connection', socket => {
   socket.emit('init', state, nextThreadId)

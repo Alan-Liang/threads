@@ -236,7 +236,7 @@
         <template v-if="needAuth">
           <h2>身份验证</h2>
           <p>SSID 为 guest 的 WiFi 的密码是？（8 个字母，可能有两种答案，都算对）</p>
-          <p><form @submit.prevent="authenticate"><input v-model="keyword"> <button type="submit">确认</button></form></p>
+          <p><form @submit.prevent="authenticate"><input type="password" v-model="keyword"> <button type="submit">确认</button></form></p>
         </template>
         <template v-else-if="nextThreadId > 0">
           <thread v-for="thread in state.filter(Boolean)" :key="thread.id" :thread="thread"></thread>
