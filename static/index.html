@@ -16,6 +16,9 @@
       h3 {
         left: 1.25rem;
       }
+      .about {
+        margin-left: 1.25rem;
+      }
       .order {
         position: absolute;
         right: calc(100% + 0.5em);
@@ -95,18 +98,20 @@
     if (window.es6Supported) document.body.classList.remove('noscript')
   </script>
   <main>
-    <h1>黄庄回响集<a class="button zhihu-link" href="/zhihu/" style="text-decoration:none">如何评价 →</a></h1>
-    <script>
-      if (location.pathname.includes('/zhihu/')) document.querySelector('h1').innerHTML = `
-      <h1>黄庄回响集·如何评价<a class="button zhihu-link" href="/" style="text-decoration:none">回到黄庄回响集 →</a></h1>
-      `
-    </script>
-    <p>💫五湖四海，红白情牵，身在世间各处的我们，对这共同的、永远的RDFZ家园，充满了怀念也充满了回忆。🟥    🟥</p>
-    <p>在这个文档里，可写下你在人大附中的事，拾取那些闪闪发光的记忆碎片✨也可与小伙伴们共同畅谈，交换彼此的快乐。👫👭 </p>
-    <p>欢迎大家分享给身边的RDFZers来一起填写！！🥳（\欢呼/）🥳</p>
-    <div class="noscript-only">
-      <br><br>
-      您的浏览器可能不支持现代 JavaScript，而我们需要现代 JavaScript 才能为您展示内容。
+    <div class="about">
+      <h1>黄庄回响集<a class="button zhihu-link" href="/zhihu/" style="text-decoration:none">如何评价 →</a></h1>
+      <script>
+        if (location.pathname.includes('/zhihu/')) document.querySelector('h1').innerHTML = `
+        黄庄回响集·如何评价<a class="button zhihu-link" href="/" style="text-decoration:none">回到黄庄回响集 →</a>
+        `
+      </script>
+      <p>💫五湖四海，红白情牵，身在世间各处的我们，对这共同的、永远的RDFZ家园，充满了怀念也充满了回忆。🟥    🟥</p>
+      <p>在这个文档里，可写下你在人大附中的事，拾取那些闪闪发光的记忆碎片✨也可与小伙伴们共同畅谈，交换彼此的快乐。👫👭 </p>
+      <p>欢迎大家分享给身边的RDFZers来一起填写！！🥳（\欢呼/）🥳</p>
+      <div class="noscript-only">
+        <br><br>
+        您的浏览器可能不支持现代 JavaScript，而我们需要现代 JavaScript 才能为您展示内容。
+      </div>
     </div>
     <div id="app">
     </div>
