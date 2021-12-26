@@ -240,7 +240,7 @@
       <div class="fullwidth">
         <template v-if="needAuth">
           <h2>身份验证</h2>
-          <p>SSID 为 guest 的 WiFi 的密码是？（8 个字母，可能有两种答案，都算对）</p>
+          <p>食堂的顶层（不是天台）是一个阶梯教室/会议厅，它有一个常用的两个字的别名，这个别名是？</p>
           <p><form @submit.prevent="authenticate"><input type="password" v-model="keyword"> <button type="submit">确认</button></form></p>
         </template>
         <template v-else-if="nextThreadId > 0">
