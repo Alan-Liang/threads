@@ -7,6 +7,9 @@
   <title>黄庄回响集</title>
   <link rel="stylesheet" href="styles/base.css">
   <style>
+    html {
+      scroll-behavior: smooth;
+    }
     h3 { position: relative; }
     .order {
       user-select: none;
@@ -88,6 +91,15 @@
         margin-left: -0.25rem;
       }
     }
+    .button.link {
+      text-decoration: none !important;
+    }
+    .meta .button.link {
+      opacity: 1 !important;
+    }
+    .thread-title a {
+      color: inherit !important;
+    }
   </style>
 </head>
 <body class="noscript">
@@ -99,10 +111,10 @@
   </script>
   <main>
     <div class="about">
-      <h1>黄庄回响集<a class="button zhihu-link" href="/zhihu/" style="text-decoration:none">如何评价 →</a></h1>
+      <h1>黄庄回响集<a class="button zhihu-link link" href="/zhihu/">如何评价 →</a></h1>
       <script>
         if (location.pathname.includes('/zhihu/')) document.querySelector('h1').innerHTML = `
-        黄庄回响集·如何评价<a class="button zhihu-link" href="/" style="text-decoration:none">回到黄庄回响集 →</a>
+        黄庄回响集·如何评价<a class="button zhihu-link link" href="/">回到黄庄回响集 →</a>
         `
       </script>
       <p>💫五湖四海，红白情牵，身在世间各处的我们，对这共同的、永远的RDFZ家园，充满了怀念也充满了回忆。🟥    🟥</p>
@@ -128,6 +140,17 @@
       needAuth: !keyword,
       keyword,
     }
+    const kScrollPosition = location.pathname.includes('/zhihu') ? 'THREADS_SCROLL_POSITION_ZHIHU' : 'THREADS_SCROLL_POSITION'
+    setInterval(() => {
+      const first = [ ...document.getElementsByClassName('thread') ].map(x => [ x.id, x.getBoundingClientRect() ]).find(x => x[1].y > 100)
+      if (!first) return
+      const id = Number(first[0].slice(7))
+      if (id < 5) {
+        localStorage[kScrollPosition] = ''
+        return
+      }
+      localStorage[kScrollPosition] = id - 1
+    }, 2000)
     let socket
     const makeSocket = keyword => {
       socket = io('/', { auth: { token: keyword }, path: location.pathname + 'socket.io' })
@@ -144,6 +167,15 @@
         shared.state = state
         shared.nextThreadId = nextThreadId
         localStorage.THREADS_KEYWORD = keyword
+        if (location.hash.startsWith('#thread-')) {
+          setTimeout(() => location = location.hash, 300)
+        } else if (localStorage[kScrollPosition]) {
+          const id = localStorage[kScrollPosition]
+          setTimeout(() => {
+            const el = document.getElementById(`thread-${id}`)
+            if (el) el.scrollIntoView()
+          }, 300)
+        }
       })
       socket.on('thread', (thread, nextThreadId) => {
         Vue.set(shared.state, thread.id, thread)
@@ -214,8 +246,8 @@
       props: { thread: {} },
       data: () => ({ folded: true }),
       template: `
-      <div class="fullwidth">
-        <h3><span class="order">{{ thread.id }}.</span> <span v-html="thread.content.replace(/</g, '&amp;lt;').replace(/>/g, '&amp;gt;').replace(/&quot;/g, '&amp;quot;').replace(/\\n/g, '<br>')" /></h3>
+      <div class="fullwidth" class="thread" :id="'thread-' + thread.id">
+        <h3 class="thread-title"><span class="order">{{ thread.id }}.</span> <a :href="'#thread-' + thread.id" v-html="thread.content.replace(/</g, '&amp;lt;').replace(/>/g, '&amp;gt;').replace(/&quot;/g, '&amp;quot;').replace(/\\n/g, '<br>')" /></h3>
         <ul class="fullwidth">
           <post v-for="post in postsToShow" :key="post.id" :post="post" :thread="thread" />
           <add-post v-if="!shouldFold || !folded" :thread-id="thread.id" :in-reply-to="-1" />
@@ -238,20 +270,24 @@
       data: shared,
       template: `
       <div class="fullwidth">
-        <template v-if="needAuth">
+        <div class="about" v-if="needAuth">
           <h2>身份验证</h2>
           <p>食堂的顶层（不是天台）是一个阶梯教室/会议厅，它有一个常用的两个字的别名，这个别名是？</p>
           <p><form @submit.prevent="authenticate"><input v-model="keyword"> <button type="submit">确认</button></form></p>
-        </template>
+          <p><small>如果不知道, 请询问小伙伴或联系服务器管理员: <a href="mailto:alan-liang+fzmem@keeer.net?subject=%E9%BB%84%E5%BA%84%E5%9B%9E%E5%93%8D%E9%9B%86%E7%9A%84%E5%AF%86%E7%A0%81%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F&body=%E6%88%91%E6%98%AF%20xxx%20%E7%BA%A7%E7%9A%84%20xxx%EF%BC%8C%E6%88%91%E5%8F%AF%E4%BB%A5%E7%94%A8%E5%A6%82%E4%B8%8B%E6%96%B9%E5%BC%8F%E8%AF%81%E6%98%8E%E6%88%91%E7%9A%84%E6%A0%A1%E5%8F%8B%2F%E5%AD%A6%E7%94%9F%E8%BA%AB%E4%BB%BD%EF%BC%9Axxx">alan-liang+fzmem@keeer.net</a></small></p>
+        </div>
         <template v-else-if="nextThreadId > 0">
           <thread v-for="thread in state.filter(Boolean)" :key="thread.id" :thread="thread"></thread>
           <add-thread :id="nextThreadId"></add-thread>
           <hr>
-          <p class="meta"><a href="https://github.com/Alan-Liang/threads/" class="button" style="opacity:1; text-decoration:none">Threads</a> · World is Powered By Solitude</p>
+          <p class="meta">
+            Powered by <a href="https://github.com/Alan-Liang/threads/" class="button link">Threads</a> ·
+            <a href="mailto:alan-liang+fzmem@keeer.net" class="button link">联系管理员</a>
+          </p>
         </template>
-        <template v-else>
+        <div class="about" v-else>
           加载中……
-        </template>
+        </div>
       </div>
       `,
       methods: {
