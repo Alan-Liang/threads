@@ -32,13 +32,13 @@ let nextPostId = 0
   const threads = await db.find({ is: 'thread' })
   threads.sort((a, b) => a.id - b.id)
   if (threads.length > 0) nextThreadId = threads[threads.length - 1].id + 1
-  for (const { id, content } of threads) state[id] = { id, content, posts: [] }
+  for (const { id, content, deleted } of threads) if (!deleted) state[id] = { id, content, posts: [] }
   const posts = await db.find({ is: 'post' })
   posts.sort((a, b) => a.id - b.id)
   if (posts.length > 0) nextPostId = posts[posts.length - 1].id + 1
   for (const post of posts) {
-    const { id, threadId, content, inReplyTo } = post
-    state[threadId]?.posts.push({ id, content, inReplyTo })
+    const { id, threadId, content, inReplyTo, deleted } = post
+    if (!deleted) state[threadId]?.posts.push({ id, content, inReplyTo })
   }
 }
 
@@ -73,12 +73,11 @@ io.use((socket, next) => {
     if (content === deleteToken) {
       if (inReplyTo < 0) {
         delete state[threadId]
-        await db.remove({ is: 'thread', id: threadId })
-        await db.remove({ is: 'post', threadId })
+        await db.update({ is: 'thread', id: threadId }, { $set: { deleted: true } })
       } else {
         const { posts } = state[threadId]
         posts.splice(posts.findIndex(p => p.id === inReplyTo), 1)
-        await db.remove({ is: 'post', id: inReplyTo })
+        await db.update({ is: 'post', id: inReplyTo }, { $set: { deleted: true } })
       }
       return
     }
