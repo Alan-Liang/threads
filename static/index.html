@@ -140,6 +140,7 @@
       needAuth: !keyword,
       keyword,
     }
+    const sendEvent = name => (window.umami && umami(name))
     const kScrollPosition = location.pathname.includes('/zhihu') ? 'THREADS_SCROLL_POSITION_ZHIHU' : 'THREADS_SCROLL_POSITION'
     setInterval(() => {
       const first = [ ...document.getElementsByClassName('thread') ].map(x => [ x.id, x.getBoundingClientRect() ]).find(x => x[1].y > 100)
@@ -159,10 +160,12 @@
       })
       socket.on('connect_error', () => {
         if (connected) return
+        sendEvent('bad')
         localStorage.THREADS_KEYWORD = ''
         alert('连接已断开, 请刷新页面')
       })
       socket.on('init', (state, nextThreadId) => {
+        sendEvent('init')
         connected = true
         shared.state = state
         shared.nextThreadId = nextThreadId
@@ -195,6 +198,7 @@
       methods: {
         go () {
           if (this.content) {
+            sendEvent('post')
             socket.emit('post', this.content, this.threadId, this.inReplyTo)
             this.content = ''
           }
@@ -236,6 +240,7 @@
       methods: {
         go () {
           if (this.content) {
+            sendEvent('thread')
             socket.emit('thread', this.content)
             this.content = ''
           }
@@ -293,6 +298,7 @@
       methods: {
         authenticate () {
           if (this.keyword) {
+            sendEvent('auth')
             this.needAuth = false
             makeSocket(this.keyword)
           }
