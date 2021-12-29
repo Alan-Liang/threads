@@ -4,6 +4,7 @@ import body from 'koa-body'
 import serve from 'koa-static'
 import { Server as IoServer } from 'socket.io'
 import http from 'http'
+import { readFileSync } from 'fs'
 import Nedb from 'nedb-promise'
 
 const token = (process.env.TOKEN || 'test').split(',')
@@ -13,6 +14,8 @@ const db = new Nedb({
   filename: process.env.DATABASE || 'data',
   autoload: true,
 })
+
+const stopwords = readFileSync(process.env.STOPWORDS || 'data.stop').toString().split('\n').map(x => x.trim()).filter(Boolean)
 
 const app = new Koa()
 const router = new Router()
@@ -58,8 +61,12 @@ io.use((socket, next) => {
   socket.emit('init', state, nextThreadId)
   socket.on('thread', async content => {
     if (typeof content !== 'string') return
-    if (content.length === 0 || content.length > 4096) return
+    if (content.length === 0 || content.length > 65) return
     const id = nextThreadId++
+    if (stopwords.some(word => content.includes(word))) {
+      await db.insert({ id, content, posts: [], is: 'badthread', ...metadata(socket) })
+      content = '帖子内容正在等待管理员审核中'
+    }
     state[id] = { id, content, posts: [] }
     io.emit('thread', state[id], nextThreadId)
     await db.insert({ is: 'thread', ...state[id], ...metadata(socket) })
@@ -82,6 +89,10 @@ io.use((socket, next) => {
       return
     }
     const id = nextPostId++
+    if (stopwords.some(word => content.includes(word))) {
+      await db.insert({ id, content, threadId, inReplyTo, is: 'badpost', ...metadata(socket) })
+      content = '回复内容正在等待管理员审核中'
+    }
     const post = { id, content, threadId, inReplyTo }
     state[threadId].posts.push(post)
     io.emit('post', post)

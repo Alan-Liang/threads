@@ -235,7 +235,7 @@
       props: { id: Number },
       data: () => ({ content: '' }),
       template: `
-      <h3><form @submit.prevent="go"><span class="order">{{ id }}.</span> <input v-model="content"> <button type="submit">添加</button></form></h3>
+      <h3><form @submit.prevent="go"><span class="order">{{ id }}.</span> <input v-model="content" maxlength="64"> <button type="submit">添加</button></form></h3>
       `,
       methods: {
         go () {
