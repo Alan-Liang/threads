@@ -13,6 +13,7 @@
     "koa-static": "^5.0.0",
     "nedb": "^1.8.0",
     "nedb-promise": "^2.0.1",
+    "node-fetch": "^3.1.0",
     "socket.io": "^4.4.0"
   }
 }

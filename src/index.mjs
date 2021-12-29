@@ -6,6 +6,7 @@ import { Server as IoServer } from 'socket.io'
 import http from 'http'
 import { readFileSync } from 'fs'
 import Nedb from 'nedb-promise'
+import fetch from 'node-fetch'
 
 const token = (process.env.TOKEN || 'test').split(',')
 const deleteToken = process.env.DELETE_TOKEN || 'delete'
@@ -50,6 +51,9 @@ const metadata = socket => ({
   ip: socket.handshake.headers['x-forwarded-for'] || socket.handshake.address,
 })
 
+const tgUrl = process.env.TG_URL, tgId = process.env.TG_ID
+const sendTg = msg => tgUrl && fetch(tgUrl, { method: 'post', body: new URLSearchParams({ chat_id: tgId, text: msg }) }).then(x => x.json()).catch(e => console.log(e))
+
 io.use((socket, next) => {
   const tok = socket.handshake.auth?.token
   if (!token.includes(tok)) {
@@ -65,10 +69,12 @@ io.use((socket, next) => {
     const id = nextThreadId++
     if (stopwords.some(word => content.includes(word))) {
       await db.insert({ id, content, posts: [], is: 'badthread', ...metadata(socket) })
+      sendTg(`bad thread: ${content}`)
       content = '帖子内容正在等待管理员审核中'
     }
     state[id] = { id, content, posts: [] }
     io.emit('thread', state[id], nextThreadId)
+    sendTg(`thread: ${content}`)
     await db.insert({ is: 'thread', ...state[id], ...metadata(socket) })
   })
   socket.on('post', async (content, threadId, inReplyTo) => {
@@ -81,21 +87,25 @@ io.use((socket, next) => {
       if (inReplyTo < 0) {
         delete state[threadId]
         await db.update({ is: 'thread', id: threadId }, { $set: { deleted: true } })
+        sendTg(`deleted thread ${threadId}`)
       } else {
         const { posts } = state[threadId]
         posts.splice(posts.findIndex(p => p.id === inReplyTo), 1)
         await db.update({ is: 'post', id: inReplyTo }, { $set: { deleted: true } })
+        sendTg(`deleted post ${inReplyTo}`)
       }
       return
     }
     const id = nextPostId++
     if (stopwords.some(word => content.includes(word))) {
       await db.insert({ id, content, threadId, inReplyTo, is: 'badpost', ...metadata(socket) })
+      sendTg(`bad post: ${content.slice(0, 64)}`)
       content = '回复内容正在等待管理员审核中'
     }
     const post = { id, content, threadId, inReplyTo }
     state[threadId].posts.push(post)
     io.emit('post', post)
+    sendTg(`post: ${content.slice(0, 64)}`)
     await db.insert({ is: 'post', ...post, ...metadata(socket) })
   })
 })
