@@ -132,7 +132,7 @@ io.use((socket, next) => {
     const post = { id, content, threadId, inReplyTo }
     state[threadId].posts.push(post)
     io.emit('post', post)
-    sendTg(`post ${id}: ${content.slice(0, 64)}`)
+    sendTg(`post ${id} (of thread ${threadId}): ${content.slice(0, 64)}`)
     await db.insert({ is: 'post', ...post, ...metadata(socket) })
   })
 })
