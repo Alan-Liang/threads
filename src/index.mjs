@@ -104,25 +104,29 @@ io.use((socket, next) => {
           sendTg(`attempted to approve thread ${threadId} which does not need to be approved`)
           return
         }
+        state[threadId].content = thread.content
         await db.update({ is: 'thread', id: threadId }, { $set: { content: thread.content } })
         await db.update({ is: 'badthread', id: threadId }, { $set: { approved: true } })
         sendTg(`approved thread ${threadId}`)
       } else {
         const post = await db.findOne({ is: 'badpost', id: inReplyTo })
         if (!post || post.approved) {
-          sendTg(`attempted to approve post ${inReplyTo} which does not need to be approved`)
+          sendTg(`attempted to approve post ${inReplyTo} (of thread ${post.threadId}) which does not need to be approved`)
           return
         }
+        const local = state[post.threadId]?.posts.find(post => post.id === inReplyTo)
+        if (local) local.content = post.content
+        else sendTg(`error approving post ${inReplyTo}: cannot find post in local db`)
         await db.update({ is: 'post', id: inReplyTo }, { $set: { content: post.content } })
         await db.update({ is: 'badpost', id: inReplyTo }, { $set: { approved: true } })
-        sendTg(`approved post ${inReplyTo}`)
+        sendTg(`approved post ${inReplyTo} (of thread ${post.threadId})`)
       }
       return
     }
     const id = nextPostId++
     if (stopwords.some(word => content.includes(word))) {
       await db.insert({ id, content, threadId, inReplyTo, is: 'badpost', ...metadata(socket) })
-      sendTg(`bad post ${id}: ${content.slice(0, 64)}`)
+      sendTg(`bad post ${id} (of thread ${threadId}): ${content.slice(0, 64)}`)
       content = '回复内容正在等待管理员审核中'
     }
     const post = { id, content, threadId, inReplyTo }
