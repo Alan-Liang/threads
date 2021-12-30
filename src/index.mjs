@@ -111,7 +111,7 @@ io.use((socket, next) => {
       } else {
         const post = await db.findOne({ is: 'badpost', id: inReplyTo })
         if (!post || post.approved) {
-          sendTg(`attempted to approve post ${inReplyTo} (of thread ${post.threadId}) which does not need to be approved`)
+          sendTg(`attempted to approve post ${inReplyTo} (of thread ${post?.threadId}) which does not need to be approved`)
           return
         }
         const local = state[post.threadId]?.posts.find(post => post.id === inReplyTo)
