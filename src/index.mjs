@@ -10,6 +10,7 @@ import fetch from 'node-fetch'
 
 const token = (process.env.TOKEN || 'test').split(',')
 const deleteToken = process.env.DELETE_TOKEN || 'delete'
+const approveToken = process.env.APPROVE_TOKEN || 'approve'
 
 const db = new Nedb({
   filename: process.env.DATABASE || 'data',
@@ -69,12 +70,12 @@ io.use((socket, next) => {
     const id = nextThreadId++
     if (stopwords.some(word => content.includes(word))) {
       await db.insert({ id, content, posts: [], is: 'badthread', ...metadata(socket) })
-      sendTg(`bad thread: ${content}`)
+      sendTg(`bad thread ${id}: ${content}`)
       content = '帖子内容正在等待管理员审核中'
     }
     state[id] = { id, content, posts: [] }
     io.emit('thread', state[id], nextThreadId)
-    sendTg(`thread: ${content}`)
+    sendTg(`thread ${id}: ${content}`)
     await db.insert({ is: 'thread', ...state[id], ...metadata(socket) })
   })
   socket.on('post', async (content, threadId, inReplyTo) => {
@@ -96,16 +97,38 @@ io.use((socket, next) => {
       }
       return
     }
+    if (content === approveToken) {
+      if (inReplyTo < 0) {
+        const thread = await db.findOne({ is: 'badthread', id: threadId })
+        if (!thread || thread.approved) {
+          sendTg(`attempted to approve thread ${threadId} which does not need to be approved`)
+          return
+        }
+        await db.update({ is: 'thread', id: threadId }, { $set: { content: thread.content } })
+        await db.update({ is: 'badthread', id: threadId }, { $set: { approved: true } })
+        sendTg(`approved thread ${threadId}`)
+      } else {
+        const post = await db.findOne({ is: 'badpost', id: inReplyTo })
+        if (!post || post.approved) {
+          sendTg(`attempted to approve post ${inReplyTo} which does not need to be approved`)
+          return
+        }
+        await db.update({ is: 'post', id: inReplyTo }, { $set: { content: post.content } })
+        await db.update({ is: 'badpost', id: inReplyTo }, { $set: { approved: true } })
+        sendTg(`approved post ${inReplyTo}`)
+      }
+      return
+    }
     const id = nextPostId++
     if (stopwords.some(word => content.includes(word))) {
       await db.insert({ id, content, threadId, inReplyTo, is: 'badpost', ...metadata(socket) })
-      sendTg(`bad post: ${content.slice(0, 64)}`)
+      sendTg(`bad post ${id}: ${content.slice(0, 64)}`)
       content = '回复内容正在等待管理员审核中'
     }
     const post = { id, content, threadId, inReplyTo }
     state[threadId].posts.push(post)
     io.emit('post', post)
-    sendTg(`post: ${content.slice(0, 64)}`)
+    sendTg(`post ${id}: ${content.slice(0, 64)}`)
     await db.insert({ is: 'post', ...post, ...metadata(socket) })
   })
 })
