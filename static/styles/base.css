@@ -142,8 +142,6 @@ input:focus, textarea:focus {
     color: rgba(255, 255, 255, .8);
   }
   blockquote::before { color: rgba(127, 127, 255, .6); }
-  a { color: #3391ff; }
-  a:visited { color: #cc91ff; }
   input, textarea {
     background-color: #121212;
     border-bottom: 1px solid #666;
