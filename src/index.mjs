@@ -21,7 +21,10 @@ const stopwords = readFileSync(process.env.STOPWORDS || 'data.stop').toString().
 
 const app = new Koa()
 const router = new Router()
-app.use(body()).use(serve('static'))
+app.use(body()).use((ctx, next) => {
+  if (ctx.path.startsWith('/memories')) ctx.path = ctx.path.replace('/memories', '')
+  return next()
+}).use(serve('static'))
 app.use(router.routes()).use(router.allowedMethods())
 
 const server = http.createServer(app.callback())
