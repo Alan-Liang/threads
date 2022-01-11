@@ -28,7 +28,7 @@ app.use(body()).use((ctx, next) => {
 app.use(router.routes()).use(router.allowedMethods())
 
 const server = http.createServer(app.callback())
-const io = new IoServer(server)
+const io = new IoServer(server, { path: '/memories/socket.io/' })
 server.listen(parseInt(process.env.PORT || 8080))
 
 const state = []
