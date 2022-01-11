@@ -50,6 +50,7 @@ let nextPostId = 0
 const metadata = socket => ({
   time: Date.now(),
   ip: socket.handshake.headers['x-forwarded-for'] || socket.handshake.address,
+  user: socket.handshake.headers['discourse-user-name'],
 })
 
 const tgUrl = process.env.TG_URL, tgId = process.env.TG_ID
