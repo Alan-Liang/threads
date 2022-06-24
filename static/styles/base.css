@@ -19,7 +19,7 @@ main {
   padding-top: 64px;
   text-align: start;
   display: inline-block;
-  max-width: 1080px;
+  max-width: 720px;
 }
 
 /* typography */
@@ -159,9 +159,92 @@ input:focus, textarea:focus {
   }
 }
 
+aside ol {
+  text-align: left;
+  list-style: none;
+  padding: 0;
+}
+aside ol a {
+  color: #bbb !important;
+  transition: color .2s ease;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+}
+aside ol a.hl {
+  color: #444 !important;
+}
+
+@media (max-width: 1079px) {
+  aside {
+    overflow-y: scroll;
+    position: fixed;
+    display: none;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    padding: 16px;
+    z-index: 2;
+    background-color: white;
+  }
+  aside.open {
+    display: block;
+  }
+  #menu-icon {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 3;
+    margin: 16px;
+    cursor: pointer;
+  }
+  aside ol a {
+    color: #888 !important;
+    max-width: calc(100vw - 80px);
+  }
+}
+
+@media (min-width: 1080px) {
+  main {
+    display: block;
+    margin-left: 64px;
+    max-width: 640px;
+  }
+  .container {
+    display: flex;
+  }
+  aside {
+    padding-top: 300px;
+    padding-left: 32px;
+  }
+  aside ol {
+    position: sticky;
+    top: 80px;
+    max-height: calc(100vh - 80px);
+    overflow-y: scroll;
+    width: 360px;
+    scrollbar-width: none;
+  }
+  aside ol a {
+    max-width: 360px;
+  }
+  #menu-icon {
+    display: none;
+  }
+}
+
 @media (min-width: 1500px) {
   main {
     display: block;
     margin-left: 194px;
+    max-width: 720px;
+  }
+  aside ol {
+    width: 480px;
+  }
+  aside ol a {
+    max-width: 480px;
   }
 }
