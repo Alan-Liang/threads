@@ -23,12 +23,14 @@ main {
 }
 
 /* typography */
-h1, h2, h3, h4, h5, h6, main, .subtitle1, .subtitle2, .body2, caption, button, .button, .overline {
+h1, h2, h3, h4, h5, h6, main, .subtitle1, .subtitle2, .body2, caption, button, .button, .overline, aside {
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
   font-family: Roboto, sans-serif;
   text-decoration: inherit;
   text-transform: inherit;
+  hyphens: auto;
+  word-break: break-all;
 }
 h1 {
   font-size: 2.75rem;
