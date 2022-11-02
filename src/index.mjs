@@ -17,7 +17,7 @@ const db = new Nedb({
   autoload: true,
 })
 
-const stopwords = readFileSync(process.env.STOPWORDS || 'data.stop').toString().split('\n').map(x => x.trim()).filter(Boolean)
+const stopwords = [ 'yyu' ]
 
 const app = new Koa()
 const router = new Router()
@@ -55,14 +55,7 @@ const metadata = socket => ({
 const tgUrl = process.env.TG_URL, tgId = process.env.TG_ID
 const sendTg = msg => tgUrl && fetch(tgUrl, { method: 'post', body: new URLSearchParams({ chat_id: tgId, text: msg }) }).then(x => x.json()).catch(e => console.log(e))
 
-io.use((socket, next) => {
-  const tok = socket.handshake.auth?.token
-  if (!token.includes(tok)) {
-    if (tok) console.log(`${Date.now()} ${socket.handshake.headers['x-forwarded-for'] || socket.handshake.address} ${tok}`)
-    return next(new Error('Not authorized'))
-  }
-  return next()
-}).on('connection', socket => {
+io.on('connection', socket => {
   socket.emit('init', state, nextThreadId)
   socket.on('thread', async content => {
     if (typeof content !== 'string') return

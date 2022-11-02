@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>黄庄回响集</title>
+  <title>程序设计实时反馈</title>
   <link rel="stylesheet" href="styles/base.css">
   <style>
     html {
@@ -118,7 +118,7 @@
   <script src="socket.io/socket.io.js"></script>
   <script src="js/pangu.min.js"></script>
   <script>
-    let keyword = localStorage.THREADS_KEYWORD || '', connected = false
+    let keyword = 'test', connected = false
     const shared = {
       state: [],
       nextThreadId: -1,
@@ -291,28 +291,10 @@
       <div class="container">
         <main>
           <div class="about">
-            <h1>黄庄回响集{{!iszhihu ? '' : '·如何评价'}}<a v-if="!iszhihu" class="button zhihu-link link" href="/zhihu/">如何评价 →</a><a v-else class="button zhihu-link link" href="/">回到黄庄回响集 →</a></h1>
-            <p>💫五湖四海，红白情牵，身在世间各处的我们，对这共同的、永远的 RDFZ 家园，充满了怀念也充满了回忆。🟥    🟥</p>
-            <p>在这个文档里，可写下你在人大附中的事，拾取那些闪闪发光的记忆碎片✨也可与小伙伴们共同畅谈，交换彼此的快乐。👫👭 </p>
-            <p>欢迎大家分享给身边的 RDFZers 来一起填写！！🥳（\欢呼/）🥳</p>
+            <h1>程序设计实时反馈</h1>
           </div>
           <div class="fullwidth">
-            <div class="about" v-if="needAuth">
-              <h2>身份验证</h2>
-              <p>食堂的顶层（不是天台）是一个阶梯教室/会议厅，它有一个常用的两个字的别名，这个别名是？</p>
-              <p><form @submit.prevent="authenticate"><input v-model="keyword"> <button type="submit">确认</button></form></p>
-              <p><small>如果不知道, 请询问小伙伴或联系服务器管理员: <a href="mailto:fzmem@altk.org?subject=%E9%BB%84%E5%BA%84%E5%9B%9E%E5%93%8D%E9%9B%86%E7%9A%84%E5%AF%86%E7%A0%81%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F&body=%E6%88%91%E6%98%AF%20xxx%20%E7%BA%A7%E7%9A%84%20xxx%EF%BC%8C%E6%88%91%E5%8F%AF%E4%BB%A5%E7%94%A8%E5%A6%82%E4%B8%8B%E6%96%B9%E5%BC%8F%E8%AF%81%E6%98%8E%E6%88%91%E7%9A%84%E6%A0%A1%E5%8F%8B%2F%E5%AD%A6%E7%94%9F%E8%BA%AB%E4%BB%BD%EF%BC%9Axxx">fzmem@altk.org</a></small></p>
-            </div>
-            <template v-else-if="nextThreadId > 0">
-              <thread v-for="thread in state.filter(Boolean)" :key="thread.id" :thread="thread"></thread>
-              <add-thread :id="nextThreadId"></add-thread>
-              <hr>
-              <p class="meta">
-                Powered by <a href="https://github.com/Alan-Liang/threads/" class="button link">Threads</a> ·
-                <a href="mailto:fzmem@altk.org" class="button link">联系管理员</a>
-              </p>
-            </template>
-            <div class="about" v-else>
+            <div class="about">
               加载中……
             </div>
           </div>
