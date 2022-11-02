@@ -294,7 +294,16 @@
             <h1>程序设计实时反馈</h1>
           </div>
           <div class="fullwidth">
-            <div class="about">
+            <template v-if="nextThreadId > 0">
+              <thread v-for="thread in state.filter(Boolean)" :key="thread.id" :thread="thread"></thread>
+              <add-thread :id="nextThreadId"></add-thread>
+              <hr>
+              <p class="meta">
+                Powered by <a href="https://github.com/Alan-Liang/threads/" class="button link">Threads</a> ·
+                <a href="mailto:fzmem@altk.org" class="button link">联系管理员</a>
+              </p>
+            </template>
+            <div class="about" v-else>
               加载中……
             </div>
           </div>
