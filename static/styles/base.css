@@ -229,6 +229,9 @@ aside ol a.hl {
     width: 360px;
     scrollbar-width: none;
   }
+  aside ol::-webkit-scrollbar {
+    display: none;
+  }
   aside ol a {
     max-width: 360px;
   }
